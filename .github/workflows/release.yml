@@ -1,0 +1,52 @@
+name: Create Release and Bump Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # We need to fetch all history so that we can create a release
+          # and so that we can get the latest tags
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Get previous version
+        id: get_version
+        run: |
+          echo "version=$(python -c "import re; print(re.search(r'__version__ = \"(.*?)\"', open('calflops/__init__.py').read()).group(1))")" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          version=$(echo ${{ steps.get_version.outputs.version }} | awk -F. -v OFS=. '{$NF++;print}')
+          echo "new_version=$version" >> $GITHUB_OUTPUT
+          echo "Bumping version from ${{ steps.get_version.outputs.version }} to $version"
+          sed -i "s/__version__ = \".*\"/__version__ = \"$version\"/" calflops/__init__.py
+          sed -i "s/version=\".*\"/version=\""$version\"/" setup.py
+
+      - name: Commit and push version bump
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore: Bump version to ${{ steps.bump_version.outputs.new_version }}"
+          tagging_message: "v${{ steps.bump_version.outputs.new_version }}"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ steps.bump_version.outputs.new_version }}"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
