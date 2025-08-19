@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="calflops2",
-    version="0.1.1",
+    version="0.1.2",
     author="Andrij David",
     author_email="david@andrij.me",
     description="A tool to calculate FLOPs and Params for neural networks",

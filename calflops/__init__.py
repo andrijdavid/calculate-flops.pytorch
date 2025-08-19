@@ -12,7 +12,7 @@
  Copyright (C) 2023 mryxj. All rights reserved.
 '''
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 from .flops_counter import calculate_flops
 from .flops_counter_hf import calculate_flops_hf
