@@ -1,0 +1,15 @@
+LICENSE
+README.md
+setup.py
+calflops/__init__.py
+calflops/calculate_pipline.py
+calflops/estimate.py
+calflops/flops_counter.py
+calflops/flops_counter_hf.py
+calflops/pytorch_ops.py
+calflops/utils.py
+calflops.egg-info/PKG-INFO
+calflops.egg-info/SOURCES.txt
+calflops.egg-info/dependency_links.txt
+calflops.egg-info/requires.txt
+calflops.egg-info/top_level.txt

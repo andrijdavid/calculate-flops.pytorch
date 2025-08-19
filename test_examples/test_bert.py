@@ -18,10 +18,9 @@ from transformers import AutoTokenizer
 
 batch_size = 1
 max_seq_length = 128
-model_name = "hfl/chinese-roberta-wwm-ext/"
-model_save = "../pretrain_models/" + model_name
-model = AutoModel.from_pretrained(model_save)
-tokenizer = AutoTokenizer.from_pretrained(model_save)
+model_name = "hfl/chinese-roberta-wwm-ext"
+model = AutoModel.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 flops, macs, params = calculate_flops(model=model, 
                                       input_shape=(batch_size,max_seq_length),
