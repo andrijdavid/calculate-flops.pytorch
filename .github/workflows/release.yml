@@ -26,7 +26,7 @@ jobs:
       - name: Get previous version
         id: get_version
         run: |
-          echo "version=$(python -c "import re; print(re.search(r'__version__ = \"(.*?)\"', open('calflops/__init__.py').read()).group(1))")" >> $GITHUB_OUTPUT
+          echo "version=$(python -c \"import re; print(re.search(r'__version__ = \"(.*?)\"', open('calflops/__init__.py').read()).group(1))\")" >> $GITHUB_OUTPUT
 
       - name: Bump version
         id: bump_version
@@ -35,7 +35,7 @@ jobs:
           echo "new_version=$version" >> $GITHUB_OUTPUT
           echo "Bumping version from ${{ steps.get_version.outputs.version }} to $version"
           sed -i "s/__version__ = \".*\"/__version__ = \"$version\"/" calflops/__init__.py
-          sed -i "s/version=\".*\"/version=\""$version\"/" setup.py
+          sed -i "s/version=\".*\"/version=\"$version\"/" setup.py
 
       - name: Commit and push version bump
         uses: stefanzweifel/git-auto-commit-action@v4
