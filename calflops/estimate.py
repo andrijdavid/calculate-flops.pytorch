@@ -109,6 +109,9 @@ def create_empty_model(model_name: str, library_name: str, trust_remote_code: bo
         auto_map = model_info.config.get("auto_map", False)
         config = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
 
+        if hasattr(config, "attn_implementation"):
+            config.attn_implementation = "eager"
+
         with init_empty_weights():
             # remote code could specify a specific `AutoModel` class in the `auto_map`
             constructor = AutoModel

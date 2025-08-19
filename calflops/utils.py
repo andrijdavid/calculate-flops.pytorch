@@ -116,7 +116,7 @@ def generate_transformer_input(model_tokenizer, input_shape, device):
         inputs = model_tokenizer.encode_plus(
             inp_seq,
             add_special_tokens=True,
-            truncation_strategy='longest_first',
+            truncation=True,
         )
         origin_length = len(inputs["input_ids"])
         padding_length = max_length - origin_length
@@ -262,7 +262,7 @@ def get_module_flops(module, is_sparse=False):
         int: The sum of the entire model flops
     """
     sum_flops = module.__flops__ * sum(
-        p.count_nonzero().item() for p in module.parameters() if p.requires_grad
+        p.numel() if p.device.type == "meta" else p.count_nonzero().item() for p in module.parameters() if p.requires_grad
     ) / sum(p.numel() for p in module.parameters() if p.requires_grad) if is_sparse else module.__flops__
     # iterate over immediate children modules
     for child in module.children():
@@ -281,7 +281,7 @@ def get_module_macs(module, is_sparse=False):
         int: The sum of the entire model macs
     """
     sum_macs = module.__macs__ * sum(
-        p.count_nonzero().item() for p in module.parameters() if p.requires_grad
+        p.numel() if p.device.type == "meta" else p.count_nonzero().item() for p in module.parameters() if p.requires_grad
     ) / sum(p.numel() for p in module.parameters() if p.requires_grad) if is_sparse else module.__macs__
     # iterate over immediate children modules
     for child in module.children():
