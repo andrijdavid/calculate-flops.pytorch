@@ -579,3 +579,28 @@ def _reload_tensor_methods(old_functions):
     torch.Tensor.add = old_functions[torch.Tensor.add.__str__]
     torch.einsum = old_functions[torch.einsum.__str__]
     torch.baddbmm = old_functions[torch.baddbmm.__str__]
+
+
+def _patch_transformers_masking_utils(old_functions):
+    try:
+        import transformers
+        if hasattr(transformers.masking_utils, "_ignore_causal_mask_sdpa"):
+            old_func = transformers.masking_utils._ignore_causal_mask_sdpa
+            def new_func(padding_mask, q_length, kv_length, kv_offset, local_size):
+                if torch.is_tensor(padding_mask) and padding_mask.is_meta:
+                    return False
+                if torch.is_tensor(q_length) and q_length.is_meta:
+                    return False
+                return old_func(padding_mask, q_length, kv_length, kv_offset, local_size)
+            transformers.masking_utils._ignore_causal_mask_sdpa = new_func
+            old_functions["transformers.masking_utils._ignore_causal_mask_sdpa"] = old_func
+    except ImportError:
+        pass # transformers not installed
+
+def _reload_transformers_masking_utils(old_functions):
+    try:
+        import transformers
+        if "transformers.masking_utils._ignore_causal_mask_sdpa" in old_functions:
+            transformers.masking_utils._ignore_causal_mask_sdpa = old_functions["transformers.masking_utils._ignore_causal_mask_sdpa"]
+    except ImportError:
+        pass

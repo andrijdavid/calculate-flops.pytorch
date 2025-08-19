@@ -23,6 +23,8 @@ from .pytorch_ops import _patch_functionals
 from .pytorch_ops import _patch_tensor_methods
 from .pytorch_ops import _reload_functionals
 from .pytorch_ops import _reload_tensor_methods
+from .pytorch_ops import _patch_transformers_masking_utils
+from .pytorch_ops import _reload_transformers_masking_utils
 from .utils import flops_to_string
 from .utils import get_module_flops
 from .utils import get_module_macs
@@ -69,6 +71,7 @@ class CalFlopsPipline(object):
         self.reset_flops_calculate()
         _patch_functionals(old_functions, module_flop_count, module_mac_count)
         _patch_tensor_methods(old_functions, module_flop_count, module_mac_count)
+        _patch_transformers_masking_utils(old_functions)
 
         def register_module_hooks(module, ignore_list):
             if ignore_list and type(module) in ignore_list:
@@ -110,6 +113,7 @@ class CalFlopsPipline(object):
         if self.pipline_started and self.func_patched:
             _reload_functionals(old_functions)
             _reload_tensor_methods(old_functions)
+            _reload_transformers_masking_utils(old_functions)
             self.func_patched = False
 
         def remove_calculate_attrs(module):
