@@ -23,7 +23,7 @@ calflops: a FLOPs and Params calculate tool for neural networks
 
 
 # Introduction
-This tool(calflops) is designed to compute the theoretical amount of FLOPs(floating-point operations)、MACs(multiply-add operations) and Parameters in all various neural networks, such as Linear、 CNN、 RNN、 GCN、**Transformer(Bert、LlaMA etc Large Language Model)**，even including **any custom models** via ```torch.nn.function.*``` as long as based on the Pytorch implementation. Meanwhile this tool supports the printing of FLOPS, Parameter calculation value and proportion of each submodule of the model, it is convient for users to understand the performance consumption of each part of the model.
+This tool(calflops2) is designed to compute the theoretical amount of FLOPs(floating-point operations)、MACs(multiply-add operations) and Parameters in all various neural networks, such as Linear、 CNN、 RNN、 GCN、**Transformer(Bert、LlaMA etc Large Language Model)**，even including **any custom models** via ```torch.nn.function.*``` as long as based on the Pytorch implementation. Meanwhile this tool supports the printing of FLOPS, Parameter calculation value and proportion of each submodule of the model, it is convient for users to understand the performance consumption of each part of the model.
 
 Latest news, calflops has launched a tool on Huggingface Space, which is more convenient for computing FLOPS in the model of 🤗Huggingface Platform. Welcome to use it:https://huggingface.co/spaces/andrijdavid/calculate-model-flops
 
@@ -55,10 +55,10 @@ In addition, the implementation process of this package inspired by [ptflops](ht
 #### From PyPI:
 
 ```python
-pip install --upgrade calflops
+pip install --upgrade calflops2
 ```
 
-And you also can download latest `calflops-*-py3-none-any.whl` files from https://pypi.org/project/calflops/ 
+And you also can download latest `calflops-*-py3-none-any.whl` files from https://pypi.org/project/calflops2/ 
 
 ```python
 pip install calflops-*-py3-none-any.whl
