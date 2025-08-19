@@ -16,6 +16,7 @@
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer
+import transformers
 
 from .utils import generate_transformer_input
 from .utils import flops_to_string
@@ -31,6 +32,7 @@ def calculate_flops_hf(model_name,
                        trust_remote_code=True,
                        access_token="",
                        forward_mode="forward",
+                       is_sparse=False,
                        include_backPropagation=False,
                        compute_bp_factor=2.0,
                        print_results=True,
@@ -40,7 +42,6 @@ def calculate_flops_hf(model_name,
                        output_unit=None,
                        ignore_modules=None,
                        return_results=False):
-    
     """Returns the total floating-point operations, MACs, and parameters of a model.
 
     Args:
@@ -73,78 +74,94 @@ def calculate_flops_hf(model_name,
         The number of floating-point operations, multiply-accumulate operations (MACs), and parameters in the model.
     """
     
-    if empty_model == None:
-        empty_model = create_empty_model(model_name=model_name,
-                                         library_name=None,
-                                         trust_remote_code=trust_remote_code,
-                                         access_token=access_token)
-    
-    tokenizer = AutoTokenizer.from_pretrained(model_name,
-                                              trust_remote_code=trust_remote_code,
-                                              access_token=access_token)
-    
-    assert isinstance(empty_model, nn.Module), "model must be a PyTorch module"
-    device = next(empty_model.parameters()).device
-    empty_model = empty_model.to(device)
-    empty_model.eval()
-    
-    calculate_flops_pipline = CalFlopsPipline(model=empty_model,
-                                              include_backPropagation=include_backPropagation,
-                                              compute_bp_factor=compute_bp_factor)
-    calculate_flops_pipline.start_flops_calculate(ignore_list=ignore_modules)
+    _original_ignore_causal_mask_sdpa = transformers.masking_utils._ignore_causal_mask_sdpa
+    def _new_ignore_causal_mask_sdpa(padding_mask, *args, **kwargs):
+        if padding_mask is not None and padding_mask.is_meta:
+            return False
+        return _original_ignore_causal_mask_sdpa(padding_mask, *args, **kwargs)
+    transformers.masking_utils._ignore_causal_mask_sdpa = _new_ignore_causal_mask_sdpa
 
-    if input_shape is not None:
-        assert type(input_shape) is tuple, "input_shape must be a tuple"
-        assert len(input_shape) >= 1, "input_shape must have at least one element"
-        assert len(input_shape) == 2, "the format of input_shape must be (batch_size, seq_len) if model is transformers model and auto_generate_transformers_input if True"
-        kwargs = generate_transformer_input(input_shape=input_shape,
-                                            model_tokenizer=tokenizer,
-                                            device=device)
-    else:
-        kwargs = generate_transformer_input(input_shape=None,
-                                            model_tokenizer=tokenizer,
-                                            device=device)
-    
-    for key, value in kwargs.items():
-        kwargs[key] = value.to(device)
-    
     try:
-        if forward_mode == 'forward':
-            _ = empty_model(**kwargs)
-        if forward_mode == 'generate':
-            _ = empty_model.generate(**kwargs)
-    except Exception as e:
-        ErrorInformation = """The model:%s meet a problem in forwarding, perhaps because the model:%s cannot be deduced on meta device. 
-        You can downloaded complete model parameters in locally from huggingface platform, and then using another function:calflops.calculate_flops(model, tokenizer) to calculate FLOPs on the gpu device.\n
-        Error Information: %s\n.
-        """ % (model_name, model_name, e)
-        print(ErrorInformation)
-        return None, None, None
-    else:
-        flops = calculate_flops_pipline.get_total_flops()
-        macs = calculate_flops_pipline.get_total_macs()
-        params = calculate_flops_pipline.get_total_params()
+        if empty_model == None:
+            empty_model = create_empty_model(model_name=model_name,
+                                            library_name=None,
+                                            trust_remote_code=trust_remote_code,
+                                            access_token=access_token)
 
-  
-        print_return = calculate_flops_pipline.print_return_model_pipline(units=output_unit,
-                                                    precision=output_precision,
-                                                    print_detailed=print_detailed,
-                                                    print_results=print_results)
+        tokenizer = AutoTokenizer.from_pretrained(model_name,
+                                                trust_remote_code=trust_remote_code,
+                                                access_token=access_token)
         
-        calculate_flops_pipline.end_flops_calculate()
+        assert isinstance(empty_model, nn.Module), "model must be a PyTorch module"
+        device = next(empty_model.parameters()).device
+        empty_model = empty_model.to(device)
+        empty_model.eval()
         
-        if include_backPropagation:
-            flops = flops * (1 + compute_bp_factor)
-            macs = macs * (1 + compute_bp_factor)
-        
-        if output_as_string:
-            flops = flops_to_string(flops, units=output_unit, precision=output_precision)
-            macs = macs_to_string(macs, units=output_unit, precision=output_precision)
-            params = params_to_string(params, units=output_unit, precision=output_precision)
-        
-        if return_results:
-            return flops, macs, params, print_return
+        calculate_flops_pipline = CalFlopsPipline(model=empty_model,
+                                                is_sparse=is_sparse,
+                                                include_backPropagation=include_backPropagation,
+                                                compute_bp_factor=compute_bp_factor)
+        calculate_flops_pipline.start_flops_calculate(ignore_list=ignore_modules)
+
+        if input_shape is not None:
+            assert type(input_shape) is tuple, "input_shape must be a tuple"
+            assert len(input_shape) >= 1, "input_shape must have at least one element"
+            assert len(input_shape) == 2, "the format of input_shape must be (batch_size, seq_len) if model is transformers model and auto_generate_transformers_input if True"
+            kwargs = generate_transformer_input(input_shape=input_shape,
+                                                model_tokenizer=tokenizer,
+                                                device=device)
         else:
-            return flops, macs, params
+            kwargs = generate_transformer_input(input_shape=None,
+                                                model_tokenizer=tokenizer,
+                                                device=device)
+        
+        for key, value in kwargs.items():
+            kwargs[key] = value.to(device)
+        
+        try:
+            if forward_mode == 'forward':
+                _ = empty_model(**kwargs)
+            if forward_mode == 'generate':
+                _ = empty_model.generate(**kwargs)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            ErrorInformation = """The model:%s meet a problem in forwarding, perhaps because the model:%s cannot be deduced on meta device.
+            You can downloaded complete model parameters in locally from huggingface platform, and then using another function:calflops.calculate_flops(model, tokenizer) to calculate FLOPs on the gpu device.\n
+            Error Information: %s\n.
+            """ % (model_name, model_name, e)
+            print(ErrorInformation)
+            if return_results:
+                return None, None, None, ""
+            else:
+                return None, None, None
+        else:
+            flops = calculate_flops_pipline.get_total_flops()
+            macs = calculate_flops_pipline.get_total_macs()
+            params = calculate_flops_pipline.get_total_params()
+
+
+            print_return = calculate_flops_pipline.print_return_model_pipline(units=output_unit,
+                                                        precision=output_precision,
+                                                        print_detailed=print_detailed,
+                                                        print_results=print_results)
+
+            calculate_flops_pipline.end_flops_calculate()
+
+            if include_backPropagation:
+                flops = flops * (1 + compute_bp_factor)
+                macs = macs * (1 + compute_bp_factor)
+
+            if output_as_string:
+                flops = flops_to_string(flops, units=output_unit, precision=output_precision)
+                macs = macs_to_string(macs, units=output_unit, precision=output_precision)
+                params = params_to_string(params, units=output_unit, precision=output_precision)
+
+            if return_results:
+                return flops, macs, params, print_return
+            else:
+                return flops, macs, params
+    finally:
+        transformers.masking_utils._ignore_causal_mask_sdpa = _original_ignore_causal_mask_sdpa
 
 
