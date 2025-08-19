@@ -4,14 +4,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="calflops",
+    name="calflops2",
     version="0.1.0",
-    author="MrYXJ",
-    author_email="yxj2017@gmail.com",
+    author="Andrij David",
+    author_email="david@andrij.me",
     description="A tool to calculate FLOPs and Params for neural networks",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/MrYxJ/calculate-flops.pytorch",
+    url="https://github.com/andrijdavid/calculate-flops.pytorch",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -7,14 +7,17 @@ calflops: a FLOPs and Params calculate tool for neural networks
 </h1>
 </div>
 
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/calflops)
-[![Pypi version](https://img.shields.io/pypi/v/calflops.svg)](https://pypi.org/project/calflops/)
-[![PyPI - License](https://img.shields.io/pypi/l/calflops)](https://github.com/MrYxJ/calculate-flops.pytorch/blob/main/LICENSE)
+> **Note**: This is a fork of [MrYxJ/calculate-flops.pytorch](https://github.com/MrYxJ/calculate-flops.pytorch). All credit for the original work goes to the original author.
+
+
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/calflops2)
+[![Pypi version](https://img.shields.io/pypi/v/calflops2.svg)](https://pypi.org/project/calflops2/)
+[![PyPI - License](https://img.shields.io/pypi/l/calflops2)](https://github.com/andrijdavid/calculate-flops.pytorch/blob/main/LICENSE)
 
 <h4 align="center">
     <p>
         <b>English</b> |
-        <a href="https://github.com/MrYxJ/calculate-flops.pytorch/blob/main/README_CN.md">中文</a>
+        <a href="https://github.com/andrijdavid/calculate-flops.pytorch/blob/main/README_CN.md">中文</a>
     <p>
 </h4>
 
@@ -22,9 +25,9 @@ calflops: a FLOPs and Params calculate tool for neural networks
 # Introduction
 This tool(calflops) is designed to compute the theoretical amount of FLOPs(floating-point operations)、MACs(multiply-add operations) and Parameters in all various neural networks, such as Linear、 CNN、 RNN、 GCN、**Transformer(Bert、LlaMA etc Large Language Model)**，even including **any custom models** via ```torch.nn.function.*``` as long as based on the Pytorch implementation. Meanwhile this tool supports the printing of FLOPS, Parameter calculation value and proportion of each submodule of the model, it is convient for users to understand the performance consumption of each part of the model.
 
-Latest news, calflops has launched a tool on Huggingface Space, which is more convenient for computing FLOPS in the model of 🤗Huggingface Platform. Welcome to use it:https://huggingface.co/spaces/MrYXJ/calculate-model-flops
+Latest news, calflops has launched a tool on Huggingface Space, which is more convenient for computing FLOPS in the model of 🤗Huggingface Platform. Welcome to use it:https://huggingface.co/spaces/andrijdavid/calculate-model-flops
 
-<img width="1480" alt="截屏2023-09-13 23 25 05" src="https://github.com/MrYxJ/calculate-flops.pytorch/assets/21152077/75b77665-9c72-49a9-a86c-0114da1945fd">
+<img width="1480" alt="截屏2023-09-13 23 25 05" src="https://github.com/andrijdavid/calculate-flops.pytorch/assets/21152077/75b77665-9c72-49a9-a86c-0114da1945fd">
 
 
 
@@ -304,11 +307,11 @@ print("Llama2(7B) FLOPs:%s   MACs:%s   Params:%s \n" %(flops, macs, params))
 
 The calflops provides a more detailed display of model FLOPs calculation information. By setting the parameter ```print_result=True```, which defaults to True, flops of the model will be printed in the terminal or jupyter interface.
 
-![print_results](https://github.com/MrYxJ/calculate-flops.pytorch/blob/main/screenshot/alxnet_print_result.png?raw=true)
+![print_results](https://github.com/andrijdavid/calculate-flops.pytorch/blob/main/screenshot/alxnet_print_result.png?raw=true)
 
 Meanwhile, by setting the parameter ```print_detailed=True``` which default to True, the calflops supports the display of the calculation results and proportion of FLOPs、MACs and Parameter in each submodule of the entire model, so that it is convenient to see the largest part of the calculation consumption in the entire model.
 
-![print_detailed](https://github.com/MrYxJ/calculate-flops.pytorch/blob/main/screenshot/alxnet_print_detailed.png?raw=true)
+![print_detailed](https://github.com/andrijdavid/calculate-flops.pytorch/blob/main/screenshot/alxnet_print_detailed.png?raw=true)
 
 ### More use introduction
 
@@ -458,17 +461,6 @@ def generate_transformer_input(model_tokenizer, input_shape, device):
 
 </details>
 
-## Citation
-if calflops was useful for your paper or tech report, please cite me:
-```
-@online{calflops,
-  author = {xiaoju ye},
-  title = {calflops: a FLOPs and Params calculate tool for neural networks in pytorch framework},
-  year = 2023,
-  url = {https://github.com/MrYxJ/calculate-flops.pytorch},
-}
-```
-
 ## Common model calculate flops
 
 ### Large Language Model
@@ -552,14 +544,5 @@ densenet201   |224x224           | 20.01     | 20013900    | 8.66   | 8658520000
 densenet161   |224x224           | 28.68     | 28681000    | 15.55  | 1554650000  | 7.73   | 7727900000
 inception_v3  |224x224           | 27.16     | 27161300    | 5.29   | 5692390000  | 2.84   | 2837920000
 
-Thanks to @[zigangzhao-ai](https://github.com/zigangzhao-ai) use ```calflops``` to static torchvision form. 
 
-You also can compare torchvision results of calculate FLOPs with anthoer good tool: [ptflops readme.md](https://github.com/sovrasov/flops-counter.pytorch/).
-
-
-
-## Concact Author
-
-Author: [MrYXJ](https://github.com/MrYxJ/)
-
-Mail: yxj2017@gmail.com
+For the original project, please visit: https://github.com/MrYxJ/calculate-flops.pytorch
