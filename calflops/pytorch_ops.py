@@ -587,6 +587,8 @@ def _patch_transformers_masking_utils(old_functions):
         if hasattr(transformers.masking_utils, "_ignore_causal_mask_sdpa"):
             old_func = transformers.masking_utils._ignore_causal_mask_sdpa
             def new_func(padding_mask, q_length, kv_length, kv_offset, local_size):
+                if torch.is_tensor(padding_mask) and padding_mask.is_meta:
+                    return False
                 if torch.is_tensor(q_length) and q_length.is_meta:
                     return False
                 return old_func(padding_mask, q_length, kv_length, kv_offset, local_size)
